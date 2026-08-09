@@ -117,7 +117,8 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_MEDIA_PROJECTION) {
             if (resultCode == RESULT_OK && data != null) {
-                GomokuAutoEngine.init(this, resultCode, data)
+                // 交给前台服务创建MediaProjection（Android14：切后台不失效）
+                FloatService.initFromActivity(resultCode, data)
             }
             return
         }

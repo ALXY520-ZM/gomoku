@@ -25,12 +25,23 @@ import android.widget.Toast
 class FloatService : Service() {
 
     companion object {
+        @Volatile var instance: FloatService? = null
+
         // 自动模式参数（供识别/引擎模块读取）
         var levelMs: Int = 5000          // 引擎思考时间（迭代加深预算）
         var minWaitSec: Int = 10         // 随机延迟最小秒
         var maxWaitSec: Int = 30         // 随机延迟最大秒
         var autoRunning: Boolean = false // 自动模式运行中
         var myColor: Int = 1             // 我方棋子：1黑 2白
+
+        /** 由MainActivity授权回调调用：让前台服务创建MediaProjection（切后台不失效） */
+        fun initFromActivity(resultCode: Int, data: android.content.Intent?) {
+            instance?.let { svc ->
+                if (data != null) {
+                    GomokuAutoEngine.init(svc, resultCode, data)
+                }
+            }
+        }
     }
 
     private lateinit var windowManager: WindowManager
@@ -71,6 +82,7 @@ class FloatService : Service() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate() {
         super.onCreate()
+        instance = this
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         // 前台服务（MediaProjection要求）
         try {
@@ -333,6 +345,7 @@ class FloatService : Service() {
     }
 
     override fun onDestroy() {
+        instance = null
         ballView?.let { try { windowManager.removeView(it) } catch (_: Exception) {} }
         hidePanel()
         super.onDestroy()
