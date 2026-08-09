@@ -95,7 +95,7 @@ class FloatService : Service() {
                         if (Math.abs(dx) > 8 || Math.abs(dy) > 8) isDragging = true
                         if (isDragging) {
                             ballParams.x = ballX + dx; ballParams.y = ballY + dy
-                            try { windowManager.updateViewLayout(ball, ballParams) } catch (_: Exception) {}
+                            try { windowManager.updateViewLayout(this@apply, ballParams) } catch (_: Exception) {}
                         }
                         true
                     }
