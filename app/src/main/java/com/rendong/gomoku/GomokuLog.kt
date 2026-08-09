@@ -8,7 +8,8 @@ import java.io.FileWriter
  * 简易文件日志：写入 /sdcard/Download/Operit/gomoku_debug.log 方便排查
  */
 object GomokuLog {
-    private val logFile = File("/sdcard/Download/Operit/gomoku_debug.log")
+    // 私有目录日志（App无存储权限也能写，shell可读）
+    private val logFile = File("/data/data/com.rendong.gomoku/files/gomoku_debug.log")
 
     fun log(msg: String) {
         Log.d("Gomoku", msg)
