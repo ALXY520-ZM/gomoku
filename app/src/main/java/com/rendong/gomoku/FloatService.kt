@@ -117,6 +117,9 @@ class FloatService : Service() {
     }
 
     // ============ 控制面板 ============
+    private var statusView: TextView? = null
+    private var levelButtons = mutableListOf<Button>()
+
     private fun showPanel() {
         if (panelView != null) return
         val ctx = this
@@ -127,8 +130,6 @@ class FloatService : Service() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(16), dp(18), dp(16))
             setBackgroundColor(0xF01A1A2E.toInt())
-            // 圆角背景（用带圆角的drawable简化为纯色+边框）
-            setPadding(dp(18), dp(16), dp(18), dp(16))
         }
 
         // 标题
@@ -154,6 +155,7 @@ class FloatService : Service() {
         val levelRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         val levels = arrayOf("简单", "普通", "困难", "大师")
         val levelVals = intArrayOf(2000, 5000, 10000, 20000)
+        levelButtons.clear()
         for (i in levels.indices) {
             val b = Button(ctx).apply {
                 text = levels[i]
@@ -162,9 +164,17 @@ class FloatService : Service() {
                 setPadding(dp(8), dp(4), dp(8), dp(4))
                 setOnClickListener {
                     levelMs = levelVals[i]
-                    Toast.makeText(ctx, "强度：${levels[i]}（思考${levelVals[i]/1000}秒）", Toast.LENGTH_SHORT).show()
+                    // 高亮选中的按钮
+                    for (btn in levelButtons) {
+                        btn.setBackgroundColor(0xFF2D2D4E.toInt())
+                        btn.setTextColor(Color.WHITE)
+                    }
+                    setBackgroundColor(0xFFE8B64C.toInt())
+                    setTextColor(0xFF1A1A2E.toInt())
+                    updateStatus("✅ 已选强度：${levels[i]}（思考${levelVals[i]/1000}秒）")
                 }
             }
+            levelButtons.add(b)
             levelRow.addView(b, LinearLayout.LayoutParams(0, dp(42), 1f).apply {
                 setMargins(dp(2), dp(4), dp(2), dp(8))
             })
@@ -207,11 +217,18 @@ class FloatService : Service() {
             setOnClickListener {
                 val mn = minInput.text.toString().toIntOrNull() ?: 10
                 val mx = maxInput.text.toString().toIntOrNull() ?: 30
-                if (mx < mn) { Toast.makeText(ctx, "最大值不能小于最小值", Toast.LENGTH_SHORT).show(); return@setOnClickListener }
+                if (mx < mn) {
+                    updateStatus("⚠️ 最大值不能小于最小值")
+                    return@setOnClickListener
+                }
                 minWaitSec = mn; maxWaitSec = mx
-                Toast.makeText(ctx, "自动下棋参数已保存\n强度${levelMs/1000}秒·延迟${mn}~${mx}秒", Toast.LENGTH_LONG).show()
+                autoRunning = true
+                text = "⏹ 停止"
+                updateStatus("✅ 参数已保存：强度${levelMs/1000}秒·延迟${mn}~${mx}秒")
                 // TODO 阶段4：启动截图识别+自动落子循环
-                Toast.makeText(ctx, "识别模块开发中，敬请期待", Toast.LENGTH_SHORT).show()
+                updateStatus("🔧 识别模块开发中，下一版上线")
+                autoRunning = false
+                text = "▶ 开始自动下棋"
             }
         }
         btnRow.addView(startBtn, LinearLayout.LayoutParams(0, dp(46), 1f).apply { setMargins(0, dp(4), dp(4), dp(8)) })
@@ -223,17 +240,27 @@ class FloatService : Service() {
         btnRow.addView(closeBtn, LinearLayout.LayoutParams(dp(46), dp(46)).apply { setMargins(dp(4), dp(4), 0, dp(8)) })
         root.addView(btnRow)
 
-        // 状态
-        root.addView(TextView(ctx).apply {
+        // 状态（面板内反馈，不依赖Toast）
+        statusView = TextView(ctx).apply {
             text = "状态：待机中"
             textSize = 12f; setTextColor(0xFF4EC9B0.toInt())
             gravity = Gravity.CENTER
-        })
+            setPadding(0, dp(6), 0, dp(2))
+        }
+        root.addView(statusView)
 
         val scroller = ScrollView(ctx)
         scroller.addView(root)
         panelView = scroller
         try { windowManager.addView(scroller, panelParams); panelShown = true } catch (_: Exception) {}
+    }
+
+    private fun updateStatus(text: String) {
+        statusView?.let { runOnUiThreadSafe { it.text = "状态：$text" } }
+    }
+
+    private fun runOnUiThreadSafe(action: () -> Unit) {
+        try { action() } catch (_: Exception) {}
     }
 
     private fun hidePanel() {
