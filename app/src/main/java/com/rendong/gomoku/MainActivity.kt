@@ -28,6 +28,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         topActivity = this
+        GomokuLog.clear()
+        GomokuLog.log("App启动 onCreate")
 
         webView = WebView(this)
         webView.settings.javaScriptEnabled = true
