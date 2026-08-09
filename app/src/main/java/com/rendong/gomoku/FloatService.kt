@@ -38,6 +38,7 @@ class FloatService : Service() {
         fun initFromActivity(resultCode: Int, data: android.content.Intent?) {
             instance?.let { svc ->
                 if (data != null) {
+                    svc.ensureForeground()
                     GomokuAutoEngine.init(svc, resultCode, data)
                 }
             }
@@ -85,6 +86,12 @@ class FloatService : Service() {
         instance = this
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         // 前台服务（MediaProjection要求）
+        ensureForeground()
+        showBall()
+    }
+
+    /** 确保服务处于前台（MediaProjection强制要求） */
+    fun ensureForeground() {
         try {
             val channel = android.app.NotificationChannel(
                 "gomoku_float", "五子棋AI助手", android.app.NotificationManager.IMPORTANCE_LOW
@@ -97,8 +104,10 @@ class FloatService : Service() {
                 .setSmallIcon(android.R.drawable.ic_menu_compass)
                 .build()
             startForeground(1, notification)
-        } catch (_: Exception) {}
-        showBall()
+            GomokuLog.log("ensureForeground: 前台服务已启动")
+        } catch (e: Exception) {
+            GomokuLog.log("ensureForeground异常: ${e.message}")
+        }
     }
 
     // ============ 悬浮球 ============

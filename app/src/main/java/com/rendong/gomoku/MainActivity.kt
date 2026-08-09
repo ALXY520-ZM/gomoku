@@ -30,6 +30,12 @@ class MainActivity : Activity() {
         topActivity = this
         GomokuLog.clear()
         GomokuLog.log("App启动 onCreate")
+        // Android13+ 请求通知权限（前台服务通知需要）
+        if (Build.VERSION.SDK_INT >= 33) {
+            try {
+                requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 100)
+            } catch (_: Exception) {}
+        }
 
         webView = WebView(this)
         webView.settings.javaScriptEnabled = true
