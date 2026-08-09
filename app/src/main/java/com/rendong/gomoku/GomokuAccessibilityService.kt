@@ -28,7 +28,7 @@ class GomokuAccessibilityService : AccessibilityService() {
             val path = Path().apply {
                 moveTo((x + ox - 8).toFloat(), (y + oy - 8).toFloat())
                 // 带弧线的人类轨迹
-                quadraticTo(
+                quadTo(
                     (x + ox + 10).toFloat(), (y + oy - 12).toFloat(),
                     (x + ox).toFloat(), (y + oy).toFloat()
                 )
