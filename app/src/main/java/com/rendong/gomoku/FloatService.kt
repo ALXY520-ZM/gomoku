@@ -36,10 +36,12 @@ class FloatService : Service() {
     private var ballView: TextView? = null
     private var panelView: View? = null
     private val ballParams: WindowManager.LayoutParams by lazy {
-        makeParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, 80, 300)
+        makeParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, 80, 300,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
     }
     private val panelParams: WindowManager.LayoutParams by lazy {
-        makeParams(dp(320), dp(440), 0, 0)
+        makeParams(dp(320), dp(440), 0, 0,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
     }
     private var panelShown = false
     private var ballX = 0; private var ballY = 0
@@ -48,7 +50,7 @@ class FloatService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun makeParams(w: Int, h: Int, x: Int, y: Int): WindowManager.LayoutParams {
+    private fun makeParams(w: Int, h: Int, x: Int, y: Int, flags: Int): WindowManager.LayoutParams {
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
@@ -57,7 +59,7 @@ class FloatService : Service() {
         }
         return WindowManager.LayoutParams(
             w, h, type,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            flags,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
