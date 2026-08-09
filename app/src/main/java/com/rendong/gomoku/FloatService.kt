@@ -265,14 +265,6 @@ class FloatService : Service() {
                     updateStatus("⏹ 已停止自动下棋")
                     return@setOnClickListener
                 }
-                // 检查无障碍
-                if (!GomokuAccessibilityService.isReady()) {
-                    updateStatus("⚠️ 请先开启无障碍服务")
-                    try {
-                        startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                    } catch (_: Exception) {}
-                    return@setOnClickListener
-                }
                 // 检查截图授权（首次需要）
                 if (MainActivity.sharedWebView == null) {
                     updateStatus("⚠️ 请先打开App主界面")
@@ -285,6 +277,14 @@ class FloatService : Service() {
                         MainActivity.topActivity?.requestScreenCapture()
                     } catch (_: Exception) {}
                     updateStatus("✅ 授权完成后，再次点击「开始」即启动")
+                    return@setOnClickListener
+                }
+                // 检查无障碍
+                if (!GomokuAccessibilityService.isReady()) {
+                    updateStatus("⚠️ 请开启【五子棋AI助手】的无障碍服务（不是Operit的）")
+                    try {
+                        startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    } catch (_: Exception) {}
                     return@setOnClickListener
                 }
                 // 全部就绪 → 启动自动循环
