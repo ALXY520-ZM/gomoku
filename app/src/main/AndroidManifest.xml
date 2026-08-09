@@ -22,7 +22,8 @@
         </activity>
         <service
             android:name=".FloatService"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
         <service
             android:name=".GomokuAccessibilityService"
             android:exported="false"

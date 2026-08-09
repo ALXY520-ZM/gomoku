@@ -96,7 +96,11 @@ class MainActivity : Activity() {
             )
             return
         }
-        startService(Intent(this, FloatService::class.java))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(Intent(this, FloatService::class.java))
+        } else {
+            startService(Intent(this, FloatService::class.java))
+        }
         Toast.makeText(this, "♟ 悬浮球已启动（可拖动）", Toast.LENGTH_SHORT).show()
     }
 

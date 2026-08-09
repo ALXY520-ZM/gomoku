@@ -72,6 +72,20 @@ class FloatService : Service() {
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        // 前台服务（MediaProjection要求）
+        try {
+            val channel = android.app.NotificationChannel(
+                "gomoku_float", "五子棋AI助手", android.app.NotificationManager.IMPORTANCE_LOW
+            )
+            (getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager)
+                .createNotificationChannel(channel)
+            val notification = android.app.Notification.Builder(this, "gomoku_float")
+                .setContentTitle("♟ 五子棋AI助手")
+                .setContentText("悬浮球运行中")
+                .setSmallIcon(android.R.drawable.ic_menu_compass)
+                .build()
+            startForeground(1, notification)
+        } catch (_: Exception) {}
         showBall()
     }
 
