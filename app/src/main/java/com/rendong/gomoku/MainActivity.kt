@@ -16,11 +16,18 @@ import android.widget.Toast
 
 class MainActivity : Activity() {
 
+    companion object {
+        @Volatile var sharedWebView: WebView? = null
+        @Volatile var topActivity: MainActivity? = null
+        private const val REQUEST_MEDIA_PROJECTION = 2001
+    }
+
     private lateinit var webView: WebView
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        topActivity = this
 
         webView = WebView(this)
         webView.settings.javaScriptEnabled = true
@@ -28,6 +35,8 @@ class MainActivity : Activity() {
         webView.settings.domStorageEnabled = true
         webView.webViewClient = WebViewClient()
         webView.loadUrl("file:///android_asset/gomoku.html")
+        sharedWebView = webView
+        GomokuAutoEngine.setContext(applicationContext)
 
         // 悬浮球按钮（右上角）
         val floatBtn = TextView(this).apply {
@@ -92,6 +101,24 @@ class MainActivity : Activity() {
     }
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+
+    /** 请求截屏授权（供自动模式用） */
+    fun requestScreenCapture() {
+        val pm = getSystemService(MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
+        try {
+            startActivityForResult(pm.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION)
+        } catch (_: Exception) {}
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_MEDIA_PROJECTION) {
+            if (resultCode == RESULT_OK && data != null) {
+                GomokuAutoEngine.init(this, resultCode, data)
+            }
+            return
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
 
     // 返回键：回退网页历史
     @Deprecated("Deprecated in Java")

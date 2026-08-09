@@ -450,6 +450,37 @@ document.getElementById('undoBtn').addEventListener('click',undo);
 document.getElementById('aiBattle').addEventListener('click',aiBattle);
 
 newGame();
+
+// ================= 自动模式接口（供App调用） =================
+window.importBoard = function(jsonStr) {
+  // 导入识别到的棋盘数组（如 [[0,1,0,...],...] 0空 1黑 2白）
+  try {
+    const arr = JSON.parse(jsonStr);
+    if (Array.isArray(arr) && arr.length === N) {
+      board = arr;
+      moveHistory = [];
+      gameOver = false;
+      // 重建moveHistory（用于stepNum判断）
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        if (board[r][c] !== 0) moveHistory.push([r, c, board[r][c]]);
+      }
+      draw();
+      return "ok";
+    }
+    return "bad_size";
+  } catch (e) { return "err"; }
+};
+window.getAIMove = function(colorStr, levelStr) {
+  // 从当前全局board状态计算落子（color: 1黑 2白）
+  const aiColor = parseInt(colorStr) || 1;
+  const levelMs = parseInt(levelStr) || 5000;
+  const p = aiMove(aiColor, levelMs);
+  if (p == null) return JSON.stringify({r: -1, c: -1});
+  return JSON.stringify({r: Math.floor(p / N), c: p % N});
+};
+window.getBoardState = function() {
+  return JSON.stringify(board);
+};
 </script>
 </body>
 </html>

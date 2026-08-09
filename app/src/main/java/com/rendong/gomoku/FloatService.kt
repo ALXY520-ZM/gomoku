@@ -30,6 +30,7 @@ class FloatService : Service() {
         var minWaitSec: Int = 10         // 随机延迟最小秒
         var maxWaitSec: Int = 30         // 随机延迟最大秒
         var autoRunning: Boolean = false // 自动模式运行中
+        var myColor: Int = 1             // 我方棋子：1黑 2白
     }
 
     private lateinit var windowManager: WindowManager
@@ -209,6 +210,26 @@ class FloatService : Service() {
             setPadding(0, dp(2), 0, dp(8))
         })
 
+        // 我方棋子（自动识别黑白）
+        root.addView(TextView(ctx).apply {
+            text = "我方棋子（开局看头像旁标注）"
+            textSize = 13f; setTextColor(0xFFE8B64C.toInt())
+        })
+        val colorRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        val blackBtn = Button(ctx).apply {
+            text = "⚫ 黑方"
+            textSize = 12f; isAllCaps = false
+            setOnClickListener { myColor = 1; updateStatus("✅ 我方：黑方（先手）") }
+        }
+        val whiteBtn = Button(ctx).apply {
+            text = "⚪ 白方"
+            textSize = 12f; isAllCaps = false
+            setOnClickListener { myColor = 2; updateStatus("✅ 我方：白方（后手）") }
+        }
+        colorRow.addView(blackBtn, LinearLayout.LayoutParams(0, dp(40), 1f).apply { setMargins(dp(2), dp(2), dp(4), dp(8)) })
+        colorRow.addView(whiteBtn, LinearLayout.LayoutParams(0, dp(40), 1f).apply { setMargins(dp(2), dp(2), dp(2), dp(8)) })
+        root.addView(colorRow)
+
         // 开始/停止 + 关闭
         val btnRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         val startBtn = Button(ctx).apply {
@@ -222,12 +243,36 @@ class FloatService : Service() {
                     return@setOnClickListener
                 }
                 minWaitSec = mn; maxWaitSec = mx
-                autoRunning = true
-                text = "⏹ 停止"
-                updateStatus("✅ 参数已保存：强度${levelMs/1000}秒·延迟${mn}~${mx}秒")
-                // TODO 阶段4：启动截图识别+自动落子循环
-                updateStatus("🔧 识别模块开发中，下一版上线")
-                autoRunning = false
+                if (autoRunning) {
+                    // 停止
+                    GomokuAutoEngine.stop()
+                    autoRunning = false
+                    text = "▶ 开始自动下棋"
+                    updateStatus("⏹ 已停止自动下棋")
+                    return@setOnClickListener
+                }
+                // 检查无障碍
+                if (!GomokuAccessibilityService.isReady()) {
+                    updateStatus("⚠️ 请先开启无障碍服务")
+                    try {
+                        startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    } catch (_: Exception) {}
+                    return@setOnClickListener
+                }
+                // 检查截图授权（首次需要）
+                if (MainActivity.sharedWebView == null) {
+                    updateStatus("⚠️ 请先打开App主界面")
+                    return@setOnClickListener
+                }
+                if (!GomokuAutoEngine.isRunning()) {
+                    // 请求截图授权（走MainActivity）
+                    updateStatus("📺 请允许屏幕录制授权…")
+                    try {
+                        MainActivity.topActivity?.requestScreenCapture()
+                    } catch (_: Exception) {}
+                }
+                updateStatus("✅ 参数已保存：强度${levelMs/1000}秒·延迟${mn}~${mx}秒·我方${if (myColor==1) "黑" else "白"}")
+                updateStatus("⏳ 授权后再次点击开始运行")
                 text = "▶ 开始自动下棋"
             }
         }
