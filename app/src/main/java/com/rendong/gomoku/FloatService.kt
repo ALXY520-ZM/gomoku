@@ -283,12 +283,14 @@ class FloatService : Service() {
                     return@setOnClickListener
                 }
                 if (!GomokuAutoEngine.isReady()) {
-                    // 请求截图授权（走MainActivity）
-                    updateStatus("📺 请允许屏幕录制授权…")
+                    // 引导回App前台授权截屏（后台无法弹授权框）
+                    updateStatus("📺 请先回App界面点「📺授权截屏」按钮授权")
                     try {
-                        MainActivity.topActivity?.requestScreenCapture()
+                        val intent = Intent(ctx, MainActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        }
+                        startActivity(intent)
                     } catch (_: Exception) {}
-                    updateStatus("✅ 授权完成后，再次点击「开始」即启动")
                     return@setOnClickListener
                 }
                 // 检查无障碍

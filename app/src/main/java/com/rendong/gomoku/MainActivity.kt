@@ -38,7 +38,7 @@ class MainActivity : Activity() {
         sharedWebView = webView
         GomokuAutoEngine.setContext(applicationContext)
 
-        // 悬浮球按钮（右上角）
+        // 悬浮球按钮 + 授权截屏按钮（右上角）
         val floatBtn = TextView(this).apply {
             text = "♟"
             textSize = 20f
@@ -48,6 +48,17 @@ class MainActivity : Activity() {
             setPadding(14, 14, 14, 14)
             setOnClickListener {
                 toggleFloat()
+            }
+        }
+        val capBtn = TextView(this).apply {
+            text = "📺\n授权截屏"
+            textSize = 10f
+            gravity = Gravity.CENTER
+            setBackgroundColor(0xFF2D2D4E.toInt())
+            setTextColor(0xFFFFFFFF.toInt())
+            setPadding(10, 8, 10, 8)
+            setOnClickListener {
+                requestScreenCapture()
             }
         }
         val floatLabel = TextView(this).apply {
@@ -63,7 +74,14 @@ class MainActivity : Activity() {
             addView(floatBtn, FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT
-            ))
+            ).apply { gravity = Gravity.START })
+            addView(capBtn, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = Gravity.START
+                setMargins(dp(56), 0, 0, 0)
+            })
             addView(floatLabel, FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT
