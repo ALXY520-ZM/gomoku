@@ -63,8 +63,7 @@ object GomokuAutoEngine {
 
     fun start() {
         if (running) return
-        GomokuLog.clear()
-        GomokuLog.log("start: 自动循环启动 levelMs=${FloatService.levelMs} minWait=${FloatService.minWaitSec} maxWait=${FloatService.maxWaitSec} myColor=${FloatService.myColor}")
+        GomokuLog.log("start: 自动循环启动 levelMs=${FloatService.levelMs} minWait=${FloatService.minWaitSec} maxWait=${FloatService.maxWaitSec} myColor=${FloatService.myColor} imageReader=${imageReader != null}")
         running = true
         loopThread = Thread {
             while (running) {
@@ -139,8 +138,14 @@ object GomokuAutoEngine {
 
     /** 截图获取Bitmap */
     private fun captureBitmap(): Bitmap? {
-        val reader = imageReader ?: return null
-        val image = reader.acquireLatestImage() ?: return null
+        val reader = imageReader
+        if (reader == null) { GomokuLog.log("capture: imageReader为空"); return null }
+        val image = try { reader.acquireLatestImage() } catch (e: Exception) {
+            GomokuLog.log("capture: acquire异常 ${e.message}"); null
+        } ?: run {
+            GomokuLog.log("capture: 无新帧（MediaProjection未出图？virtualDisplay=${virtualDisplay != null} mp=${mediaProjection != null}）")
+            null
+        } ?: return null
         val planes = image.planes
         val buffer = planes[0].buffer
         val pixelStride = planes[0].pixelStride
