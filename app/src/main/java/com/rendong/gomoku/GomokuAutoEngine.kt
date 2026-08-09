@@ -53,6 +53,9 @@ object GomokuAutoEngine {
 
     fun isRunning() = running
 
+    /** 是否已初始化（截图授权完成） */
+    fun isReady(): Boolean = imageReader != null
+
     fun start() {
         if (running) return
         running = true

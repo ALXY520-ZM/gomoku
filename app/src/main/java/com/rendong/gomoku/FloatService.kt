@@ -264,16 +264,21 @@ class FloatService : Service() {
                     updateStatus("⚠️ 请先打开App主界面")
                     return@setOnClickListener
                 }
-                if (!GomokuAutoEngine.isRunning()) {
+                if (!GomokuAutoEngine.isReady()) {
                     // 请求截图授权（走MainActivity）
                     updateStatus("📺 请允许屏幕录制授权…")
                     try {
                         MainActivity.topActivity?.requestScreenCapture()
                     } catch (_: Exception) {}
+                    updateStatus("✅ 授权完成后，再次点击「开始」即启动")
+                    return@setOnClickListener
                 }
-                updateStatus("✅ 参数已保存：强度${levelMs/1000}秒·延迟${mn}~${mx}秒·我方${if (myColor==1) "黑" else "白"}")
-                updateStatus("⏳ 授权后再次点击开始运行")
-                text = "▶ 开始自动下棋"
+                // 全部就绪 → 启动自动循环
+                GomokuAutoEngine.setContext(applicationContext)
+                GomokuAutoEngine.start()
+                autoRunning = true
+                text = "⏹ 停止"
+                updateStatus("✅ 自动下棋已启动：强度${levelMs/1000}秒·延迟${minWaitSec}~${maxWaitSec}秒·我方${if (myColor==1) "黑" else "白"}")
             }
         }
         btnRow.addView(startBtn, LinearLayout.LayoutParams(0, dp(46), 1f).apply { setMargins(0, dp(4), dp(4), dp(8)) })
